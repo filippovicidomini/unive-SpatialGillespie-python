@@ -1,6 +1,6 @@
 from math import floor
 from random import random
-
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from numpy import ndarray, zeros, shape, log
@@ -70,6 +70,49 @@ class SpatialSSA:
         :return: ndarray
         """
         return self.get_subvolumes_diffusion_rates().sum(axis=2)
+
+    def _get_h(self, index):
+        """
+            Calculate the combinations of reactants.
+        """
+        vector = self._reactants_stoic[index]
+        if sum(vector) == 0:
+            return 1  # all zeros
+        elif sum(vector) == 1:  # just one reactant
+            return self._state[np.where(vector == 1)][0]
+
+        # Covering the general case
+        else:
+            # Case 1
+            if sum(vector) == 2 and list(vector).count(1) == 2:
+                return np.prod(np.array([self._state[i] for i in np.where(vector == 1)]))
+
+            # Case 2
+            if sum(vector) == 2 and 2 in vector:
+                return self._state[np.where(vector == 1)] * (self._state[np.where(vector == 1)] - 1) / 2
+            # Case 3
+            if sum(vector) == 3 and list(vector).count(1) == 3:
+                return np.prod(np.array([self._state[i] for i in np.where(vector == 1)]))
+
+            # Case 4
+            if sum(vector) == 3 and 1 in vector and 2 in vector:
+                return self._state[np.where(vector == 1)] * self._state[np.where(vector == 2)] * (
+                            self._state[np.where(vector == 2)] - 1) / 2
+
+            # Case 5
+            if sum(vector) == 3 and 3 in vector:
+                return self._state[np.where(vector == 3)] * (self._state[np.where(vector == 3)] - 1) * (
+                            self._state[np.where(vector == 3)] - 2) / 6
+
+
+
+    def get_subvolume_reaction_rate(self, x: int, y: int):
+        species_vector = self.matrix[x, y, :] # specie nel sottovolume interessato
+        # ora dobbiamo calcolare le propensity per ogni reazione
+
+
+
+
 
     def get_subvolumes_reaction_rates(self) -> ndarray:
         """
