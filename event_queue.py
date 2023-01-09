@@ -50,3 +50,16 @@ class EventQueue:
         self.heap.pop()
         self.heapify_down(0)
         return min
+
+    def event_count(self) -> int:
+        return len(self.heap)
+
+    def remove_element(self, subvolume: SubVolume):
+        self.heap.remove(subvolume)
+        self.heapify_down(0)
+
+    def remove_with_coordinates(self, coordinates: tuple[int, int]):
+        for subvolume in self.heap:
+            if subvolume.coordinates == coordinates:
+                self.remove_element(subvolume)
+                break
