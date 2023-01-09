@@ -1,3 +1,4 @@
+from math import floor
 from random import random
 
 from numpy import ndarray, zeros, shape, log
@@ -5,30 +6,33 @@ from numpy import ndarray, zeros, shape, log
 from event_queue import EventQueue
 from matrix import Matrix
 from models.reaction import Reaction
+from models.specie import Specie
 from models.subvolume import SubVolume
 
 
 class SpatialSSA:
-    diffusion_rates: ndarray
     matrix: Matrix
     subvolume_size: float
     reactions: list[Reaction]
+    species: list[Specie]
 
     subvolumes_diffusion_rates: ndarray
     subvolumes_reaction_rates: ndarray
     subvolumes_next_event_times: ndarray
 
-    def __init__(self, matrix: Matrix, diffusion_rates: ndarray, reactions: list[Reaction],
+    def __init__(self, matrix: Matrix, species: list[Specie], reactions: list[Reaction],
                  subvolume_size: float = 1.0):
         self.matrix = matrix
-        self.diffusion_rates = diffusion_rates
         self.reactions = reactions
+        self.species = species
 
         # Data coherence check
-        assert (self.diffusion_rates.shape == self.matrix.underlying_matrix.shape)
+        assert (len(self.species) == self.matrix.underlying_matrix.shape)
 
         for reaction in reactions:
-            assert (len(reaction.reactants) == len(reaction.products) == len(self.diffusion_rates.shape))
+            assert (len(reaction.reactants) == len(reaction.products) == len(self.species))
+
+        self.diffusion_rates_sum = sum([specie.diffusion_rate for specie in self.species])
 
     def get_subvolumes_diffusion_rates(self) -> ndarray:
         """
@@ -41,12 +45,10 @@ class SpatialSSA:
 
             for x in range(shape(self.matrix.underlying_matrix)[0]):
                 for y in range(shape(self.matrix.underlying_matrix)[1]):
-                    for specie_id in range(shape(self.matrix.underlying_matrix)[2]):
-                        self.subvolumes_diffusion_rates[x, y, specie_id] = self.matrix.get_specie_concentration_in_cell(
+                    for specie in self.species:
+                        self.subvolumes_diffusion_rates[x, y, specie.id] = self.matrix.get_specie_concentration_in_cell(
                             x, y,
-                            specie_id) * \
-                                                                           self.diffusion_rates[
-                                                                               specie_id] / self.subvolume_size ** 2
+                            specie.id) * specie.diffusion_rate / self.subvolume_size ** 2
 
         return self.subvolumes_diffusion_rates
 
@@ -132,4 +134,25 @@ class SpatialSSA:
                         )
                     )
 
-        
+        # Let the event happen
+        while event_queue.event_count() > 0:
+            next_event: SubVolume = event_queue.extract_min()
+            rand: float = random()
+
+            if rand < self.get_subvolumes_diffusion_rates_sum()[next_event.coordinates] / \
+                    self.get_subvolumes_total_rate()[next_event.coordinates]:
+                # Chemical reaction
+                pass
+            else:
+                # Diffusion
+                diffusion_rate_rand: float = rand * self.diffusion_rates_sum
+                for specie in sorted(self.species, key=lambda s: s.diffusion_rate):
+                    if diffusion_rate_rand < specie.diffusion_rate:
+                        # Diffusion of specie.id
+                        direction: int = floor(rand * 8)
+                        try:
+                            self.matrix.move_specie(*next_event.coordinates, specie.id, direction)
+                        except IndexError:
+                            direction = (direction + 4) % 8
+                            self.matrix.move_specie(*next_event.coordinates, specie.id, direction)
+                        break
