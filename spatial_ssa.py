@@ -2,6 +2,7 @@ from random import random
 
 from numpy import ndarray, zeros, shape, log
 
+from event_queue import EventQueue
 from matrix import Matrix
 from models.reaction import Reaction
 from models.subvolume import SubVolume
@@ -116,13 +117,13 @@ class SpatialSSA:
     def step(self):
         self.clear_cache()
 
-        subvolumes: list[SubVolume] = []
+        event_queue: EventQueue = EventQueue()
         for x in range(self.get_subvolumes_next_event_times().shape[0]):
             for y in range(self.get_subvolumes_next_event_times().shape[1]):
                 if self.get_subvolumes_next_event_times()[x, y] is None:
                     continue
                 else:
-                    subvolumes.append(
+                    event_queue.insert(
                         SubVolume(
                             (x, y),
                             self.get_subvolumes_diffusion_rates()[x, y],
@@ -130,3 +131,5 @@ class SpatialSSA:
                             self.get_subvolumes_next_event_times()[x, y]
                         )
                     )
+
+        

@@ -4,7 +4,7 @@ from models.subvolume import SubVolume
 class EventQueue:
     heap: list[SubVolume] = []
 
-    def __init__(self, subvolumes: list[SubVolume]):
+    def __init__(self, subvolumes: list[SubVolume] = []):
         for subvolume in subvolumes:
             self.insert(subvolume)
 
