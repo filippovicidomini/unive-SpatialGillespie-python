@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from numpy import ndarray, zeros
+from numpy import ndarray, zeros, array
 
 from models.reaction import Reaction
 
@@ -44,8 +44,8 @@ class Matrix:
         self.underlying_matrix[x, y, specie_id] -= 1
 
     def execute_reaction(self, x: int, y: int, reaction: Reaction):
-        for i in range(len(reaction.reactants)):
-            self.underlying_matrix[x, y, i] += reaction.products[i] - reaction.reactants[i]
+        print(f"Reazione! Change state: {array(reaction.products) - array(reaction.reactants)}")
+        self.underlying_matrix[x, y] += array(reaction.products) - array(reaction.reactants)
 
     @staticmethod
     def get_neighbour_coordinates(x: int, y: int, direction: int) -> tuple:

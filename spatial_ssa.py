@@ -2,6 +2,7 @@ from math import floor
 from random import random
 
 import matplotlib.pyplot as plt
+import numpy
 from matplotlib import animation
 from numpy import ndarray, zeros, shape, log
 
@@ -80,8 +81,9 @@ class SpatialSSA:
         :param y: int
         :return: None
         """
-        species_vector: list = list(self.matrix[x, y, :])
-        reaction_rates: ndarray = ndarray(map(lambda reaction: reaction.get_rate(species_vector), self.reactions))
+        species_vector: list = list(self.matrix.underlying_matrix[x, y, :])
+        reaction_rates: ndarray = numpy.array(
+            list(map(lambda reaction: reaction.get_rate(species_vector), self.reactions)))
 
         self.subvolumes_reaction_rates[x, y] = reaction_rates
 
@@ -154,10 +156,19 @@ class SpatialSSA:
                         )
                     )
 
-    def step(self, i: int):
-        im.set_data(self.matrix.underlying_matrix[:, :, 0])
+    stopped: bool = False
+
+    def step(self, loop_count: int):
+        for i in range(len(self.species)):
+            ims[i].set_data(self.matrix.underlying_matrix[:, :, i])
 
         next_event: SubVolume = self.event_queue.extract_min()
+        if next_event is None:
+            if not self.stopped:
+                print("No more events")
+                self.stopped = True
+            return
+
         rand: float = random()
 
         if rand < self.get_subvolumes_reaction_rates()[next_event.coordinates] / \
@@ -167,13 +178,24 @@ class SpatialSSA:
             for reaction in sorted(zip(self.reactions, self.get_subvolumes_reaction_rates()[next_event.coordinates]),
                                    key=lambda x: x[1]):
                 if reaction_rate_rand < reaction[1]:
-                    self.matrix.execute_reaction(*next_event.coordinates, reaction[1])
+                    self.matrix.execute_reaction(*next_event.coordinates, reaction[0])
                     break
 
                 reaction_rate_rand -= reaction[1]
 
             self.update_subvolume_reaction_rates(*next_event.coordinates)
             self.recalculate_diffusion_rates_for_subvolume(*next_event.coordinates)
+
+            if self.get_subvolumes_total_rate()[next_event.coordinates] > 0.0:
+                self.event_queue.insert(
+                    SubVolume(
+                        next_event.coordinates,
+                        self.get_subvolumes_diffusion_rates()[next_event.coordinates],
+                        self.get_subvolumes_reaction_rates()[next_event.coordinates],
+                        -log(random()) / self.get_subvolumes_total_rate()[
+                            next_event.coordinates] + next_event.next_event_time
+                    )
+                )
 
         else:
             # Diffusion
@@ -209,7 +231,8 @@ class SpatialSSA:
                                 next_event.coordinates,
                                 self.get_subvolumes_diffusion_rates()[next_event.coordinates],
                                 self.get_subvolumes_reaction_rates()[next_event.coordinates],
-                                -log(random()) / self.get_subvolumes_total_rate()[next_event.coordinates],
+                                -log(random()) / self.get_subvolumes_total_rate()[
+                                    next_event.coordinates] + next_event.next_event_time
                             ))
 
                     if self.get_subvolumes_total_rate()[self.matrix.get_neighbour_coordinates(
@@ -222,21 +245,27 @@ class SpatialSSA:
                                 self.get_subvolumes_reaction_rates()[self.matrix.get_neighbour_coordinates(
                                     *next_event.coordinates, direction)],
                                 -log(random()) / self.get_subvolumes_total_rate()[self.matrix.get_neighbour_coordinates(
-                                    *next_event.coordinates, direction)],
+                                    *next_event.coordinates, direction)] + next_event.next_event_time
                             )
                         )
 
                     break
                 diffusion_rate_rand -= specie.diffusion_rate
 
-    def draw_animate_plot(self):
+    def draw_animate_plot(self, size: int = 1000):
         # Animate a plot with the simulation using matplotlib
-        global im, target_loop_count
-        target_loop_count = 1000
+        global ims
 
-        fig, ax = plt.subplots()
-        im = ax.imshow(self.matrix.underlying_matrix[:, :, 0], cmap="tab20b", interpolation='nearest')
+        fig, axes = plt.subplots(len(self.species))
+
+        ims = []
+        for i, axis in enumerate(axes):
+            axis.set_title(self.species[i].name)
+            im = axis.imshow(self.matrix.underlying_matrix[:, :, i])
+            # ims = ax.imshow(self.matrix.underlying_matrix[:, :, 0], cmap="tab20b", interpolation='nearest')
+
+            ims.append(im)
 
         self.initialize()
-        ani = animation.FuncAnimation(fig, self.step, save_count=target_loop_count)
+        ani = animation.FuncAnimation(fig, self.step, save_count=size)
         ani.save('basic_animation.mp4', fps=30)

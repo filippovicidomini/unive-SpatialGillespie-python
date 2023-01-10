@@ -45,6 +45,9 @@ class EventQueue:
         return self.heap[0]
 
     def extract_min(self) -> SubVolume:
+        if len(self.heap) == 0:
+            return None
+
         min = self.get_min()
         self.heap[0] = self.heap[-1]
         self.heap.pop()

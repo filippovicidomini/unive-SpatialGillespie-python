@@ -20,7 +20,7 @@ class Reaction:
             support: list = []
             for i in range(len(self.reactants)):
                 if self.reactants[i] == 1:
-                    support.append(concentrations[i])
+                    support.append(i)
             return concentrations[support[0]] * concentrations[support[1]]
         elif sum(self.reactants) == 2 and 2 in self.reactants:
             return concentrations[self.reactants.index(2)] * (concentrations[self.reactants.index(2)] - 1) / 2
@@ -28,7 +28,7 @@ class Reaction:
             support: list = []
             for i in range(len(self.reactants)):
                 if self.reactants[i] == 1:
-                    support.append(concentrations[i])
+                    support.append(i)
             return concentrations[support[0]] * concentrations[support[1]] * concentrations[support[2]]
         elif sum(self.reactants) == 3 and 1 in self.reactants and 2 in self.reactants:
             return concentrations[self.reactants.index(1)] * concentrations[self.reactants.index(2)] * (
