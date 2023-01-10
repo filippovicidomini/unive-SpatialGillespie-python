@@ -182,11 +182,10 @@ class SpatialSSA:
         if rand < self.get_subvolumes_reaction_rates()[next_event.coordinates] / \
                 self.get_subvolumes_total_rate()[next_event.coordinates]:
             # Reaction
-            print("Reaction!")
             reaction_rate_rand: float = rand * sum(self.get_subvolumes_reaction_rates()[next_event.coordinates])
             for reaction in sorted(zip(self.reactions, self.get_subvolumes_reaction_rates()[next_event.coordinates]),
-                                   key=lambda x: x[1]):
-                if reaction_rate_rand < reaction[1]:
+                                   key=lambda x: x[1], reverse=True):
+                if reaction_rate_rand - reaction[1] < 0:
                     print("Reaction: " + str(reaction[0]))
                     self.matrix.execute_reaction(*next_event.coordinates, reaction[0])
                     break
@@ -211,9 +210,6 @@ class SpatialSSA:
         else:
             # Diffusion
             diffusion_rate_rand: float = rand * self.get_subvolumes_diffusion_rates_sum()[next_event.coordinates]
-            print(sorted(self.species, key=lambda s: s.diffusion_rate * self.matrix.get_specie_concentration_in_cell(
-                *next_event.coordinates, s.id), reverse=True))
-            print(diffusion_rate_rand)
 
             for specie in sorted(self.species,
                                  key=lambda s: s.diffusion_rate * self.matrix.get_specie_concentration_in_cell(

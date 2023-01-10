@@ -92,6 +92,6 @@ class Matrix:
         else:
             return x, y
 
-    def get_total_molecules_count(self):
-        print(any(self.underlying_matrix.flatten() > 0))
-        return self.underlying_matrix.sum()
+    def get_total_molecules_count(self) -> str:
+        # I want to get the sum by z axis (the species)
+        return str(self.underlying_matrix.sum(axis=0).sum(axis=0))
