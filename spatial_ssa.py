@@ -12,6 +12,14 @@ from models.reaction import Reaction
 from models.specie import Specie
 from models.subvolume import SubVolume
 
+cmaps = [
+    "Greys",
+    "Purples",
+    "Blues",
+    "Greens",
+    "Oranges"
+]
+
 
 class SpatialSSA:
     matrix: Matrix
@@ -159,12 +167,10 @@ class SpatialSSA:
     stopped: bool = False
 
     def step(self, loop_count: int):
-        print(self.matrix.get_total_molecules_count())
+        print(f"{loop_count} : {self.matrix.get_total_molecules_count()}")
 
         for i in range(len(self.species)):
-            ims[i].set_data(log(self.matrix.underlying_matrix[:, :, i] + 1))
-            print(log(self.matrix.underlying_matrix[:, :, i] + 1))
-            print("Setto dato ", i)
+            ims[i].set_data(self.matrix.underlying_matrix[:, :, i])
 
         next_event: SubVolume = self.event_queue.extract_min()
 
@@ -207,7 +213,7 @@ class SpatialSSA:
 
             for specie in sorted(self.species,
                                  key=lambda s: s.diffusion_rate * self.matrix.get_specie_concentration_in_cell(
-                                         *next_event.coordinates, s.id), reverse=True):
+                                     *next_event.coordinates, s.id), reverse=True):
                 if diffusion_rate_rand - specie.diffusion_rate * self.matrix.get_specie_concentration_in_cell(
                         *next_event.coordinates, specie.id) < 0:
                     # Diffusion of specie.id
@@ -259,26 +265,27 @@ class SpatialSSA:
 
                     break
                 diffusion_rate_rand -= specie.diffusion_rate
+        return ims
 
     def draw_animate_plot(self, size: int = 1000):
         # Animate a plot with the simulation using matplotlib
-        global ims
-
-        fig, axes = plt.subplots(len(self.species))
-
+        global ims, ax
         ims = []
-        if len(self.species) == 1:
-            axes = [axes]
 
-        for i, axis in enumerate(axes):
-            axis.set_title(self.species[i].name)
-            im = axis.imshow(self.matrix.underlying_matrix[:, :, i])
-            # ims = ax.imshow(self.matrix.underlying_matrix[:, :, 0], cmap="tab20b", interpolation='nearest')
+        fig, ax = plt.subplots()
+
+        # axis.set_title(self.species[i].name)
+        for i in range(len(self.species)):
+            im = ax.imshow(self.matrix.underlying_matrix[:, :, i], interpolation='nearest', cmap=cmaps[i],
+                           aspect='auto', animated=True)
+            cb = plt.colorbar(im)
+            cb.set_label(self.species[i].name)
 
             ims.append(im)
 
         self.initialize()
         ani = animation.FuncAnimation(fig, self.step, save_count=size)
+
         plt.show()
 
         ani.save('basic_animation.mp4', fps=30)
