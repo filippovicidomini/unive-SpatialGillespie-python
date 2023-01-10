@@ -65,6 +65,9 @@ class SpatialSSA:
                 for y in range(shape(self.matrix.underlying_matrix)[1]):
                     self.recalculate_diffusion_rates_for_subvolume(x, y)
 
+        if any(self.subvolumes_diffusion_rates.flatten() < 0):
+            print("diff rate < 0!!!!!")
+
         return self.subvolumes_diffusion_rates
 
     def get_subvolumes_diffusion_rates_sum(self) -> ndarray:
@@ -155,14 +158,19 @@ class SpatialSSA:
                             self.get_subvolumes_next_event_times()[x, y]
                         )
                     )
+        print(self.get_subvolumes_total_rate())
 
     stopped: bool = False
 
     def step(self, loop_count: int):
+        print(self.matrix.get_total_molecules_count())
+
         for i in range(len(self.species)):
             ims[i].set_data(self.matrix.underlying_matrix[:, :, i])
 
         next_event: SubVolume = self.event_queue.extract_min()
+        print(f"Eventi in coda: {self.event_queue.event_count()}")
+
         if next_event is None:
             if not self.stopped:
                 print("No more events")
@@ -174,19 +182,22 @@ class SpatialSSA:
         if rand < self.get_subvolumes_reaction_rates()[next_event.coordinates] / \
                 self.get_subvolumes_total_rate()[next_event.coordinates]:
             # Reaction
+            print("Reaction!")
             reaction_rate_rand: float = rand * sum(self.get_subvolumes_reaction_rates()[next_event.coordinates])
             for reaction in sorted(zip(self.reactions, self.get_subvolumes_reaction_rates()[next_event.coordinates]),
                                    key=lambda x: x[1]):
                 if reaction_rate_rand < reaction[1]:
+                    print("Reaction: " + str(reaction[0]))
                     self.matrix.execute_reaction(*next_event.coordinates, reaction[0])
                     break
 
                 reaction_rate_rand -= reaction[1]
 
-            self.update_subvolume_reaction_rates(*next_event.coordinates)
             self.recalculate_diffusion_rates_for_subvolume(*next_event.coordinates)
+            self.update_subvolume_reaction_rates(*next_event.coordinates)
 
             if self.get_subvolumes_total_rate()[next_event.coordinates] > 0.0:
+                print("Aggiorno subv")
                 self.event_queue.insert(
                     SubVolume(
                         next_event.coordinates,
@@ -199,18 +210,25 @@ class SpatialSSA:
 
         else:
             # Diffusion
-            diffusion_rate_rand: float = rand * self.diffusion_rates_sum
-            for specie in sorted(self.species, key=lambda s: s.diffusion_rate):
-                if diffusion_rate_rand < specie.diffusion_rate:
+            diffusion_rate_rand: float = rand * self.get_subvolumes_diffusion_rates_sum()[next_event.coordinates]
+            print(sorted(self.species, key=lambda s: s.diffusion_rate * self.matrix.get_specie_concentration_in_cell(
+                *next_event.coordinates, s.id), reverse=True))
+            print(diffusion_rate_rand)
+
+            for specie in sorted(self.species,
+                                 key=lambda s: s.diffusion_rate * self.matrix.get_specie_concentration_in_cell(
+                                         *next_event.coordinates, s.id), reverse=True):
+                if diffusion_rate_rand - specie.diffusion_rate * self.matrix.get_specie_concentration_in_cell(
+                        *next_event.coordinates, specie.id) < 0:
                     # Diffusion of specie.id
                     direction: int = floor(rand * 8)
                     moved: bool = False
 
                     while not moved:
-                        try:
+                        if self.matrix.can_move(*next_event.coordinates, direction):
                             self.matrix.move_specie(*next_event.coordinates, specie.id, direction)
                             moved = True
-                        except IndexError:
+                        else:
                             direction = (direction + 1) % 8
 
                     self.recalculate_diffusion_rates_for_subvolume(*next_event.coordinates)
@@ -259,6 +277,9 @@ class SpatialSSA:
         fig, axes = plt.subplots(len(self.species))
 
         ims = []
+        if len(self.species) == 1:
+            axes = [axes]
+
         for i, axis in enumerate(axes):
             axis.set_title(self.species[i].name)
             im = axis.imshow(self.matrix.underlying_matrix[:, :, i])
@@ -266,6 +287,7 @@ class SpatialSSA:
 
             ims.append(im)
 
+        plt.plot()
         self.initialize()
         ani = animation.FuncAnimation(fig, self.step, save_count=size)
         ani.save('basic_animation.mp4', fps=30)

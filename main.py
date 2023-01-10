@@ -3,8 +3,7 @@ from models.reaction import Reaction
 from models.specie import Specie
 from spatial_ssa import SpatialSSA
 
-
-species: list[Specie] = [Specie("A", 0.5, 0), Specie("B", 0.5, 1), Specie("C", 0.5, 2)]
+species: list[Specie] = [Specie("A", 0.8, 0), Specie("B", 0.2, 1), Specie("C", 0.5, 2)]
 matrix: Matrix = Matrix((15, 15, len(species)))
 
 matrix.put_specie_in_cell(4, 4, 0, 15)
@@ -22,4 +21,4 @@ ssa: SpatialSSA = SpatialSSA(
     ]
 )
 
-ssa.draw_animate_plot(1000)
+ssa.draw_animate_plot(500)
