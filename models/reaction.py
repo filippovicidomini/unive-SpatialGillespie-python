@@ -36,3 +36,6 @@ class Reaction:
         elif sum(self.reactants) == 3 and 3 in self.reactants:
             return concentrations[self.reactants.index(3)] * (concentrations[self.reactants.index(3)] - 1) * (
                     concentrations[self.reactants.index(3)] - 2) / 6
+
+    def get_rate(self, concentrations: list[int]) -> float:
+        return self.rate * self.get_h(concentrations)
