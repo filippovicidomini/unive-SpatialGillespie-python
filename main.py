@@ -4,10 +4,10 @@ from models.specie import Specie
 from spatial_ssa import SpatialSSA
 
 species: list[Specie] = [Specie("A", 0.3, 0), Specie("B", 0.2, 1), Specie("C", 0.5, 2)]
-matrix: Matrix = Matrix((10, 10, len(species)))
+matrix: Matrix = Matrix((2, 2, len(species)))
 
-matrix.put_specie_in_cell(4, 4, 0, 60)
-matrix.put_specie_in_cell(6, 6, 1, 60)
+matrix.put_specie_in_cell(0, 0, 0, 60)
+matrix.put_specie_in_cell(1, 1, 1, 60)
 
 ssa: SpatialSSA = SpatialSSA(
     matrix,

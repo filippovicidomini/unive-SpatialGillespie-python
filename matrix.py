@@ -17,8 +17,6 @@ class Matrix:
         self.underlying_matrix[x, y, specie_id] = specie_concentration
 
     def get_specie_concentration_in_cell(self, x: int, y: int, specie_id: int) -> float:
-        if self.underlying_matrix[x, y, specie_id] < 0:
-            print(f"PANICOOO -) {x, y, specie_id}")
         return self.underlying_matrix[x, y, specie_id]
 
     def plot_concentrations(self, specie_id: int):
@@ -45,8 +43,6 @@ class Matrix:
 
         self.underlying_matrix[x, y, specie_id] -= 1
 
-        if self.underlying_matrix[x, y, specie_id] < 0:
-            print("PANICOOO dopo diff")
 
     def can_move(self, x: int, y: int, direction: int) -> bool:
         if direction == 0:
@@ -67,8 +63,6 @@ class Matrix:
             return x < self.underlying_matrix.shape[0] - 1 and y > 0
 
     def execute_reaction(self, x: int, y: int, reaction: Reaction):
-        print(f"Executing reaction {reaction} in cell ({x}, {y})")
-        print(self.underlying_matrix[x, y, :])
         self.underlying_matrix[x, y] += array(reaction.products) - array(reaction.reactants)
 
     @staticmethod

@@ -65,9 +65,6 @@ class SpatialSSA:
                 for y in range(shape(self.matrix.underlying_matrix)[1]):
                     self.recalculate_diffusion_rates_for_subvolume(x, y)
 
-        if any(self.subvolumes_diffusion_rates.flatten() < 0):
-            print("diff rate < 0!!!!!")
-
         return self.subvolumes_diffusion_rates
 
     def get_subvolumes_diffusion_rates_sum(self) -> ndarray:
@@ -158,7 +155,6 @@ class SpatialSSA:
                             self.get_subvolumes_next_event_times()[x, y]
                         )
                     )
-        print(self.get_subvolumes_total_rate())
 
     stopped: bool = False
 
@@ -166,14 +162,14 @@ class SpatialSSA:
         print(self.matrix.get_total_molecules_count())
 
         for i in range(len(self.species)):
-            ims[i].set_data(self.matrix.underlying_matrix[:, :, i])
+            ims[i].set_data(log(self.matrix.underlying_matrix[:, :, i] + 1))
+            print(log(self.matrix.underlying_matrix[:, :, i] + 1))
+            print("Setto dato ", i)
 
         next_event: SubVolume = self.event_queue.extract_min()
-        print(f"Eventi in coda: {self.event_queue.event_count()}")
 
         if next_event is None:
             if not self.stopped:
-                print("No more events")
                 self.stopped = True
             return
 
@@ -186,7 +182,6 @@ class SpatialSSA:
             for reaction in sorted(zip(self.reactions, self.get_subvolumes_reaction_rates()[next_event.coordinates]),
                                    key=lambda x: x[1], reverse=True):
                 if reaction_rate_rand - reaction[1] < 0:
-                    print("Reaction: " + str(reaction[0]))
                     self.matrix.execute_reaction(*next_event.coordinates, reaction[0])
                     break
 
@@ -196,7 +191,6 @@ class SpatialSSA:
             self.update_subvolume_reaction_rates(*next_event.coordinates)
 
             if self.get_subvolumes_total_rate()[next_event.coordinates] > 0.0:
-                print("Aggiorno subv")
                 self.event_queue.insert(
                     SubVolume(
                         next_event.coordinates,
@@ -283,7 +277,8 @@ class SpatialSSA:
 
             ims.append(im)
 
-        plt.plot()
         self.initialize()
         ani = animation.FuncAnimation(fig, self.step, save_count=size)
+        plt.show()
+
         ani.save('basic_animation.mp4', fps=30)
