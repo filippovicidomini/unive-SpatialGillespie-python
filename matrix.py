@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 from numpy import ndarray, zeros
 
+from models.reaction import Reaction
+
 
 class Matrix:
     underlying_matrix: ndarray
@@ -40,6 +42,10 @@ class Matrix:
             self.underlying_matrix[x + 1, y - 1, specie_id] += 1
 
         self.underlying_matrix[x, y, specie_id] -= 1
+
+    def execute_reaction(self, x: int, y: int, reaction: Reaction):
+        for i in range(len(reaction.reactants)):
+            self.underlying_matrix[x, y, i] += reaction.products[i] - reaction.reactants[i]
 
     @staticmethod
     def get_neighbour_coordinates(x: int, y: int, direction: int) -> tuple:
