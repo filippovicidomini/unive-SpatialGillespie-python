@@ -217,7 +217,7 @@ class SpatialSSA:
                 if diffusion_rate_rand - specie.diffusion_rate * self.matrix.get_specie_concentration_in_cell(
                         *next_event.coordinates, specie.id) < 0:
                     # Diffusion of specie.id
-                    direction: int = floor(rand * 8)
+                    direction: int = floor(random() * 8)
                     moved: bool = False
 
                     while not moved:
