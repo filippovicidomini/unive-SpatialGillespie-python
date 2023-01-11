@@ -3,7 +3,7 @@ from models.reaction import Reaction
 from models.specie import Specie
 from spatial_ssa import SpatialSSA
 
-species: list[Specie] = [Specie("x", 0.1, 0), Specie("y1", 2, 1), Specie('y2', 10, 2)]
+species: list[Specie] = [Specie("x", 0.1, 0), Specie("y1", 8, 1), Specie('y2', 10, 2)]
 matrix: Matrix = Matrix((15, 15, len(species)))
 
 matrix.put_specie_in_cell(5, 5, 0, 100)
