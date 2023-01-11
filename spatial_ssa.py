@@ -4,6 +4,7 @@ from random import random
 import matplotlib.pyplot as plt
 import numpy
 from matplotlib import animation
+from matplotlib.colors import LogNorm
 from numpy import ndarray, zeros, shape, log
 
 from event_queue import EventQueue
@@ -268,6 +269,28 @@ class SpatialSSA:
         return ims
 
     def draw_animate_plot(self, size: int = 1000):
+        # i want a subplot for every species
+        global ims, ax
+
+        fig, ax = plt.subplots(1, len(self.species), figsize=(len(self.species) * 3, 3))
+        ims = []
+
+        for nd, ax in enumerate(ax.flatten()):
+            l = ax.imshow(self.matrix.underlying_matrix[:, :, nd], norm=LogNorm(vmin=1, vmax=1000), cmap='Purples')
+            ax.axis('off')
+            ax.set_title(self.species[nd].name)
+            ims.append(l)
+
+        self.initialize()
+
+        ani = animation.FuncAnimation(fig, self.step, frames=size, interval=1, blit=False)
+
+        plt.show()
+
+        ani.save('test.mp4', fps=30)
+
+
+        """
         # Animate a plot with the simulation using matplotlib
         global ims, ax
         ims = []
@@ -289,3 +312,4 @@ class SpatialSSA:
         plt.show()
 
         ani.save('basic_animation.mp4', fps=30)
+        """
