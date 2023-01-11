@@ -275,7 +275,7 @@ class SpatialSSA:
         ims = []
 
         for nd, ax in enumerate(ax.flatten()):
-            l = ax.imshow(self.matrix.underlying_matrix[:, :, nd], norm=LogNorm(vmin=1, vmax=1000), cmap='Purples')
+            l = ax.imshow(self.matrix.underlying_matrix[:, :, nd], norm=LogNorm(vmin=1, vmax=1000), cmap='inferno')
             ax.axis('off')
             ax.set_title(self.species[nd].name)
             ims.append(l)
@@ -288,27 +288,3 @@ class SpatialSSA:
 
         ani.save('test.mp4', fps=30)
 
-
-        """
-        # Animate a plot with the simulation using matplotlib
-        global ims, ax
-        ims = []
-
-        fig, ax = plt.subplots()
-
-        # axis.set_title(self.species[i].name)
-        for i in range(len(self.species)):
-            im = ax.imshow(self.matrix.underlying_matrix[:, :, i], interpolation='nearest', cmap=cmaps[i],
-                           aspect='auto', animated=True)
-            cb = plt.colorbar(im)
-            cb.set_label(self.species[i].name)
-
-            ims.append(im)
-
-        self.initialize()
-        ani = animation.FuncAnimation(fig, self.step, save_count=size)
-
-        plt.show()
-
-        ani.save('basic_animation.mp4', fps=30)
-        """
