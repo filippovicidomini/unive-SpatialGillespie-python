@@ -182,8 +182,7 @@ class SpatialSSA:
 
         rand: float = random()
 
-        if rand < self.get_subvolumes_reaction_rates()[next_event.coordinates] / \
-                self.get_subvolumes_total_rate()[next_event.coordinates]:
+        if rand < self.get_subvolumes_reaction_rate_sum()[next_event.coordinates] / self.get_subvolumes_total_rate()[next_event.coordinates]:
             # Reaction
             reaction_rate_rand: float = rand * sum(self.get_subvolumes_reaction_rates()[next_event.coordinates])
             for reaction in sorted(zip(self.reactions, self.get_subvolumes_reaction_rates()[next_event.coordinates]),
