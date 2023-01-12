@@ -282,7 +282,7 @@ class SpatialSSA:
 
         self.initialize()
 
-        ani = animation.FuncAnimation(fig, self.step, frames=size, interval=1, blit=False)
+        ani = animation.FuncAnimation(fig, self.step, frames=size, interval=10000, blit=False)
 
         plt.show()
 
