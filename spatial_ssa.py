@@ -267,7 +267,7 @@ class SpatialSSA:
                 diffusion_rate_rand -= specie.diffusion_rate
         return ims
 
-    def draw_animate_plot(self, size: int = 1000):
+    def draw_animate_plot(self, size: int = 1000, interval: int = 1):
         # i want a subplot for every species
         global ims, ax
 
@@ -282,7 +282,7 @@ class SpatialSSA:
 
         self.initialize()
 
-        ani = animation.FuncAnimation(fig, self.step, frames=size, interval=10000, blit=False)
+        ani = animation.FuncAnimation(fig, self.step, frames=size, interval=interval, blit=False, repeat=False)
 
         plt.show()
 
