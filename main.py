@@ -21,18 +21,18 @@ for _ in range(n_food):
     matrix.put_specie_in_cell(x, y, 0, 10)
 
 # put conigli fam
-n_conigli: int = randint(1500, 2000)
+n_conigli: int = randint(2000, 2500)
 for _ in range(n_conigli):
     x: int = randint(0, 49)
     y: int = randint(0, 49)
-    matrix.put_specie_in_cell(x, y, 1, 100)
+    matrix.put_specie_in_cell(x, y, 1, 10)
 
 # put wolf fam
-n_wolf: int = randint(1500, 2000)
+n_wolf: int = randint(2000, 2500)
 for _ in range(n_wolf):
     x: int = randint(0, 49)
     y: int = randint(0, 49)
-    matrix.put_specie_in_cell(x, y, 2, 100)
+    matrix.put_specie_in_cell(x, y, 2, 10)
 
 
 
@@ -60,4 +60,4 @@ ssa: SpatialSSA = SpatialSSA(
     ]
 )
 
-ssa.draw_animate_plot(size=10000, interval=1000)
+ssa.draw_animate_plot(size=10000, interval=1)
