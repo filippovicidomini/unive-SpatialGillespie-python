@@ -286,5 +286,5 @@ class SpatialSSA:
 
         plt.show()
 
-        ani.save('test.mp4', fps=30)
+        ani.save('test.mp4', fps=60, extra_args=['-vcodec', 'libx264'])
 
