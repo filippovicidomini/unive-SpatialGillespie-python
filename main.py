@@ -40,4 +40,4 @@ ssa: SpatialSSA = SpatialSSA(
     ]
 )
 
-ssa.draw_animate_plot(size=35000, interval=0.0001)
+ssa.draw_animate_plot(size=35000, interval=1)
